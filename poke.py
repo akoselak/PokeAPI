@@ -1,5 +1,10 @@
 import requests
 
+from io import BytesIO
+from PIL import Image
+from rich.console import Console
+from rich_pixels import Pixels
+
 def getPokemon(name):
     url = "https://pokeapi.co/api/v2/pokemon/" + name
     r = requests.get(url, timeout=10)
@@ -27,6 +32,19 @@ def getPokemon(name):
             bst+=s['base_stat']
 
         print("base stat total:", bst)
+
+        sprite_url = data["sprites"]["front_default"]
+
+        if sprite_url:
+            img_bytes = requests.get(sprite_url, timeout=10).content
+            resp = requests.get(sprite_url, timeout=10)
+            image = Image.open(BytesIO(img_bytes))
+
+            bbox = image.getbbox()
+            if bbox:
+                image = image.crop(bbox)
+
+            Console().print(Pixels.from_image(image))
 
 
 def main():
