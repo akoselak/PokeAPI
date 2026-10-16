@@ -100,10 +100,80 @@ def typeMatchUp(name):
         data = r.json()
         print(data["name"])
 
+    url_links = []
+    for entry in data["types"]:
+        tr = requests.get(entry["type"]["url"], timeout=10)
+        url_links.append(tr.json())
+
+    type_relations = []
+    for link in url_links:
+        for s in link["damage_relations"]:
+            keep = [s]
+            for t in link["damage_relations"][s]:
+                keep.append(t["name"])
+            type_relations.append(keep)
+        
+
+    labels_to = {
+    "no_damage_to":0,
+    "quarter_damage_to":0.25,
+    "half_damage_to":0.5,
+    "double_damage_to":2,
+    "quadruple_damage_to":4,
+    }
+
+    labels_from = {
+    "no_damage_from":0,
+    "half_damage_from":0.5,
+    "quarter_damage_from":0.25,
+    "double_damage_from":2,
+    "quadruple_damage_from":4,
+    }
+
+    pokemon_types_to = {
+    'normal': 1, 'fire': 1, 'water': 1, 'electric': 1, 'grass': 1, 'ice': 1,
+    'fighting': 1, 'poison': 1, 'ground': 1, 'flying': 1, 'psychic': 1, 'bug': 1,
+    'rock': 1, 'ghost': 1, 'dragon': 1, 'dark': 1, 'steel': 1, 'fairy': 1
+    }
+
+    pokemon_types_from = {
+    'normal': 1, 'fire': 1, 'water': 1, 'electric': 1, 'grass': 1, 'ice': 1,
+    'fighting': 1, 'poison': 1, 'ground': 1, 'flying': 1, 'psychic': 1, 'bug': 1,
+    'rock': 1, 'ghost': 1, 'dragon': 1, 'dark': 1, 'steel': 1, 'fairy': 1
+    }
+
+    for mu in type_relations:
+        if (mu[0] in labels_to):
+            ptype = mu.pop(0)
+            for item in mu:
+                pokemon_types_to[item] *= labels_to[ptype]
+        else:
+            ptype = mu.pop(0)
+            for item in mu:
+                pokemon_types_from[item] *= labels_from[ptype]
+
+    for mu in labels_to:
+        print(mu.replace("_", " "))
+        i = 0
+        for ptype in pokemon_types_to:
+            if (pokemon_types_to[ptype] == labels_to[mu]):
+                print(ptype)
+        print()
+        i+=1
+
+    for mu in labels_from:
+        i = 0
+        print(mu.replace("_", " "))
+        for ptype in pokemon_types_from:
+            if (pokemon_types_from[ptype] == labels_from[mu]):
+                print(ptype)
+        print()
+        i+=1
+        
 
 def main():
     while True:
-        print("select options: summary, compare")
+        print("select options: summary, compare, type mu")
         option = input()
 
         if option == "summary":
@@ -116,6 +186,12 @@ def main():
             p2 = input()
             compare(p1, p2)
 
+        elif option == "type mu":
+            pokemon = input("pick a pokemon (all lowercase): ")
+            typeMatchUp(pokemon)
+
         else: break
+
+    
 
 main()
