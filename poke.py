@@ -1,5 +1,6 @@
 import requests
 
+import tkinter as tk
 from io import BytesIO
 from PIL import Image
 from rich.console import Console
@@ -12,7 +13,11 @@ def cacheRequest(name):
     r.raise_for_status()
     return r.json()
 
-def summary(name):
+def summary(name=None):
+    name = entry.get().lower().strip()
+    if not name:
+        return
+
     url = "https://pokeapi.co/api/v2/pokemon/" + name
     name = cacheRequest(name.lower().strip())
     r = requests.get(url, timeout=10)
@@ -98,7 +103,8 @@ def typeMatchUp(name):
         print("none")
     else:
         data = r.json()
-        print(data["name"])
+        if (__name__ == '__main__'):
+            print(data["name"])
 
     url_links = []
     for entry in data["types"]:
@@ -152,23 +158,25 @@ def typeMatchUp(name):
             for item in mu:
                 pokemon_types_from[item] *= labels_from[ptype]
 
-    for mu in labels_to:
-        print(mu.replace("_", " "))
-        i = 0
-        for ptype in pokemon_types_to:
-            if (pokemon_types_to[ptype] == labels_to[mu]):
-                print(ptype)
-        print()
-        i+=1
+    if (__name__ == '__main__'):
+        for mu in labels_to:
+                print(mu.replace("_", " "))
+                i = 0
+                for ptype in pokemon_types_to:
+                    if (pokemon_types_to[ptype] == labels_to[mu]):
+                        print(ptype)
+                print()
+                i+=1
 
-    for mu in labels_from:
-        i = 0
-        print(mu.replace("_", " "))
-        for ptype in pokemon_types_from:
-            if (pokemon_types_from[ptype] == labels_from[mu]):
-                print(ptype)
-        print()
-        i+=1
+        for mu in labels_from:
+            i = 0
+            print(mu.replace("_", " "))
+            for ptype in pokemon_types_from:
+                if (pokemon_types_from[ptype] == labels_from[mu]):
+                    print(ptype)
+            print()
+            i+=1
+    return pokemon_types_to, pokemon_types_from
         
 
 def main():
@@ -193,5 +201,5 @@ def main():
         else: break
 
     
-
-main()
+if (__name__ == '__main__'):
+    main()
