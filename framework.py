@@ -3,6 +3,7 @@ from io import BytesIO
 import requests
 from PIL import Image, ImageTk
 from poke import *
+from random import randrange
 
 def set_info(text):
     info.config(state="normal")
@@ -87,6 +88,80 @@ def lookup(event=None):
         image_label.config(image=photo)
         image_label.image = photo  
 
+def rlookup(event=None):
+    max = 1025
+    r = requests.get(f"https://pokeapi.co/api/v2/pokemon/{max}", timeout=10)
+    while r.status_code != 404:
+        max+=1
+        r = requests.get(f"https://pokeapi.co/api/v2/pokemon/{max}", timeout=10)
+    id = randrange(1, max)
+
+    r = requests.get(f"https://pokeapi.co/api/v2/pokemon/{id}", timeout=10)
+    data = r.json()
+
+    types = ", ".join(t["type"]["name"].capitalize() for t in data["types"])
+    stats = "\n".join(
+        f"{s['stat']['name'].replace('-', ' ').title():<16}{s['base_stat']}"
+        for s in data["stats"]
+    )
+
+    ptt, ptf = typeMatchUp(data['name'])
+
+    labels_to = {
+    "no_damage_to":0,
+    "quarter_damage_to":0.25,
+    "half_damage_to":0.5,
+    "double_damage_to":2,
+    "quadruple_damage_to":4,
+    }
+    
+    labels_from = {
+    "no_damage_from":0,
+    "half_damage_from":0.5,
+    "quarter_damage_from":0.25,
+    "double_damage_from":2,
+    "quadruple_damage_from":4,
+    }
+    tt = []
+
+    for mu, value in labels_to.items():
+        tt.append(mu.replace("_", " "))
+        for ptype, pvalue in ptt.items():
+            if pvalue == value:
+                tt.append(ptype)
+        tt.append("")  
+
+    typesto = "\n".join(tt)
+    
+    tf = []
+    
+    for mu, value in labels_from.items():
+        tf.append(mu.replace("_", " "))
+        for ptype, pvalue in ptf.items():
+            if pvalue == value:
+                tf.append(ptype)
+        tf.append("")  
+
+    typesfrom = "\n".join(tf)
+
+    set_info(
+        f"{data['name'].capitalize()} (#{data['id']})\n"
+        f"Type: {types}\n\n"
+        f"{stats}\n\n"
+        f"Types to:\n{typesto}\n\n"
+        f"Types from:\n{typesfrom}"
+    )
+
+
+    sprite_url = data["sprites"]["front_default"]
+    if sprite_url:
+        resp = requests.get(sprite_url, timeout=10)
+        resp.raise_for_status()
+        img = Image.open(BytesIO(resp.content)).convert("RGBA")
+        img = img.resize((192, 192), Image.NEAREST)
+        photo = ImageTk.PhotoImage(img)
+        image_label.config(image=photo)
+        image_label.image = photo
     
 
 root = tk.Tk()
@@ -97,7 +172,7 @@ entry.pack(padx=10, pady=(10, 5))
 entry.bind("<Return>", lookup)
 
 tk.Button(root, text="Search", command=lookup).pack(pady=5)
-
+tk.Button(root, text="Randomize", command=rlookup).pack(pady=5)
 image_label = tk.Label(root)
 image_label.pack()
 
